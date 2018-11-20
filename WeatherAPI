@@ -1,0 +1,22 @@
+#my second attempt at using an API
+#attempted to add time of sunrise and sunset however I need to learn how to work with unix data.
+
+
+import requests
+
+city = input('Enter your city: ') #requires city input from user
+#api that is used to find the information online
+url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=71054dada1dd1b3c62cd38047f72cbd7&units=metric'.format(city)
+#pulls the results of the api
+res = requests.get(url)
+#converts api information to a variale
+data = res.json()
+
+#print(res) used in testing
+#print(data) used in testing
+
+temp = data['main']['temp'] #calls specific informatiotn
+weather = data['weather'][0]['main']
+#prints result
+print('\nTempeture : {} degrees celsius \n'.format(temp))
+print('Weather is {} at the moment'.format(weather))
