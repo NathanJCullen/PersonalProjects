@@ -1,3 +1,7 @@
+#This twitter bot uses the weather API file found elsewhere in the repository.
+#This bot searches twitter every 20 seconds to see if there is a specific hashtag within any tweets. If there is, the bot finds the
+#word following the hashtag and runs it through a weather API and returns the current temperature and current conditions.
+
 import tweepy
 import time
 
@@ -12,38 +16,62 @@ auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
 api = tweepy.API(auth)
 
-FILE_NAME = 'last_seen_id.txt' #there is a file that updates the id of the last seen tweet
+FILE_NAME = 'last_seen_id.txt'
 
-def retrieve_last_seen_id(file_name): #retrieves contents of the file
+def retrieve_last_seen_id(file_name):
 	f_read = open(file_name, 'r')
 	last_seen_id = int(f_read.read().strip())
 	f_read.close()
-	return last_seen_id #collects the value of the last seen id
-	
+	return last_seen_id
+
 def store_last_seen_id(last_seen_id, file_name):
 	f_write = open(file_name, 'w')
 	f_write.write(str(last_seen_id))
 	f_write.close()
 	return
-	
+
+def find_city(tweet):
+    tweet.split()[2]
+
 def reply_to_tweets():
-	print('retrieving and replying to tweets...')
+    print('retrieving and replying to tweets...')
 	#1063086437145497601 first one was used during development test
-	last_seen_id = retrieve_last_seen_id(FILE_NAME)	
-	mentions = api.mentions_timeline( #connects to twitters pre made api for mentions
-		last_seen_id,
-		tweet_mode='extended')
-	
-	for mention in reversed(mentions): #collects all mentions in order of oldest first
-		print(str(mention.id) + ' - ' + mention.full_text)
-		last_seen_id = mention.id #updates the last seen id t that of the latest mentioned id
-		store_last_seen_id(last_seen_id, FILE_NAME)
-		if '#test' in mention.full_text.lower(): #checks to see if the specific string is used in the mention
-			print('found #Test')
-			print('responding')
-			api.update_status('@' + mention.user.screen_name + #the context of the reply tweet
-				'#Hello to you', mention.id)
-			
-while True: #continually run the function with a 60 seconds refresh
+    last_seen_id = retrieve_last_seen_id(FILE_NAME)
+    mentions = api.mentions_timeline(
+            last_seen_id,
+            tweet_mode='extended')
+
+    for mention in reversed(mentions):
+        print(str(mention.id) + ' - ' + mention.full_text)
+        last_seen_id = mention.id
+        store_last_seen_id(last_seen_id, FILE_NAME)
+        if '#weather' in mention.full_text.lower():
+            tweet = mention.full_text.lower()
+            city = find_city(tweet)
+            print('found #weather')
+            print('responding')
+            api.update_status('@' + mention.user.screen_name + " " + "The current temperature is : " +
+                str(findtemp(city)) + " degrees celsius\n" + "Current weather is :  " + str(findweather(city)) , mention.id)
+
+def findtemp(x):
+    url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=71054dada1dd1b3c62cd38047f72cbd7&units=metric'.format(x)
+
+    res = requests.get(url)
+    data = res.json()
+    temp = data['main']['temp']
+
+    return temp
+    #weather = data['weather'][0]['main']
+
+def findweather(x):
+    url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=71054dada1dd1b3c62cd38047f72cbd7&units=metric'.format(x)
+
+    res = requests.get(url)
+    data = res.json()
+    weather = data['weather'][0]['main']
+
+    return weather
+
+while True:
 	reply_to_tweets()
-	time.sleep(60)
+	time.sleep(20)
