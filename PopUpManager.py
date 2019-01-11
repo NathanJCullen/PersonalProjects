@@ -1,3 +1,7 @@
+#My first attempt at GUI was creating a simple application for setting up a pop up of the users choosing.
+#When opened the user is met by an interface where they can choose what sound they would like played, what they would like to pop up
+#and how often they would like it to pop up in seconds.
+
 from pygame import mixer
 from tkinter import *
 from tkinter.filedialog import askopenfilename
