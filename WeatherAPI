@@ -1,5 +1,5 @@
-#my second attempt at using an API
-#attempted to add time of sunrise and sunset however I need to learn how to work with unix data.
+#First project.
+#Attempted to add time of sunrise and sunset however I need to learn how to work with unix data.
 
 
 import requests
