@@ -1,3 +1,8 @@
+#This is a basic version of a script that will merge the contents of any word documents given. The user will select a current word
+#document and then the user decides if they would like to copy the contents into a new word document, or to append it to the end of an
+#existing document. Currently this script only copys the text and not the style, in the future however I will be updating that as well as
+#adding GUI.
+
 from docx import Document
 
 doc = input("What is the document that you would like to copy from?: ")
