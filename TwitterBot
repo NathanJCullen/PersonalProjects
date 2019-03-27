@@ -1,22 +1,43 @@
 #This twitter bot uses the weather API file found elsewhere in the repository.
 #This bot searches twitter every 20 seconds to see if there is a specific hashtag within any tweets. If there is, the bot finds the
 #word following the hashtag and runs it through a weather API and returns the current temperature and current conditions.
+#This script was updated on 27/03/2019 to include a new more accurate API and to also fix a couple of bugs.
 
 import tweepy
 import time
+import requests
 
-print('this is my twitter bot')
 
-CONSUMER_KEY = #these are keys devloped through my personal twitter account
-CONSUMER_SECRET = #you would import your own keys here.
-ACCESS_KEY =
-ACCESS_SECRET = 
+CONSUMER_KEY = ''
+CONSUMER_SECRET = ''
+ACCESS_KEY = ''
+ACCESS_SECRET = ''
 
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 FILE_NAME = 'last_seen_id.txt'
+
+def findweather(lat, lon):
+	weatherkey = ''
+	forecastrequest = requests.get('https://api.darksky.net/forecast/%s/%s,%s'%(weatherkey, lat, lon))
+	forecastresponse = forecastrequest.json()
+	currenttemp = forecastresponse['currently']['temperature']
+	c = (currenttemp - 32) * (5/9)
+	c = round(c, 1)
+	return c
+
+def findcoords(city):
+	jsonrequest = requests.get('https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q=%s&format=json&limit=1'%city)
+	jsonresponse = jsonrequest.json()
+
+	latitude = jsonresponse[0]['lat']
+	longitude = jsonresponse[0]['lon']
+	#city = jsonresponse[0]['city']
+	coords = (latitude, longitude)
+	return coords#city
+
 
 def retrieve_last_seen_id(file_name):
 	f_read = open(file_name, 'r')
@@ -31,7 +52,8 @@ def store_last_seen_id(last_seen_id, file_name):
 	return
 
 def find_city(tweet):
-    tweet.split()[2]
+    city = tweet.split()[1]
+    return city
 
 def reply_to_tweets():
     print('retrieving and replying to tweets...')
@@ -44,34 +66,17 @@ def reply_to_tweets():
     for mention in reversed(mentions):
         print(str(mention.id) + ' - ' + mention.full_text)
         last_seen_id = mention.id
+        tweet = mention.full_text.lower()
+        city = find_city(tweet)
+        coords = findcoords(city)
+        lat = coords[0]
+        lon = coords[1]
+        print('Found Tweet')
+        print('Responding')
+        api.update_status('@' + mention.user.screen_name + " " + "The current temperature is : " + str(findweather(lat, lon)) + 'degrees celsius' , mention.id)
         store_last_seen_id(last_seen_id, FILE_NAME)
-        if '#weather' in mention.full_text.lower():
-            tweet = mention.full_text.lower()
-            city = find_city(tweet)
-            print('found #weather')
-            print('responding')
-            api.update_status('@' + mention.user.screen_name + " " + "The current temperature is : " +
-                str(findtemp(city)) + " degrees celsius\n" + "Current weather is :  " + str(findweather(city)) , mention.id)
 
-def findtemp(x):
-    url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=71054dada1dd1b3c62cd38047f72cbd7&units=metric'.format(x)
 
-    res = requests.get(url)
-    data = res.json()
-    temp = data['main']['temp']
-
-    return temp
-    #weather = data['weather'][0]['main']
-
-def findweather(x):
-    url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=71054dada1dd1b3c62cd38047f72cbd7&units=metric'.format(x)
-
-    res = requests.get(url)
-    data = res.json()
-    weather = data['weather'][0]['main']
-
-    return weather
-
-while True:
+while true:
 	reply_to_tweets()
 	time.sleep(20)
