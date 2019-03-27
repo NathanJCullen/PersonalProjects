@@ -1,22 +1,25 @@
 #First project.
 #Attempted to add time of sunrise and sunset however I need to learn how to work with unix data.
-
+#Updated on 27/03/2019 to a more accurate API, however the new API requires latitude and longtitude instead of address name,
+#Due to this an address to lat, lon converter was used.
 
 import requests
 
-city = input('Enter your city: ') #requires city input from user
-#api that is used to find the information online
-url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=71054dada1dd1b3c62cd38047f72cbd7&units=metric'.format(city)
-#pulls the results of the api
-res = requests.get(url)
-#converts api information to a variale
-data = res.json()
+def findweather(lat, lon):
+	weatherkey = ''
+	forecastrequest = requests.get('https://api.darksky.net/forecast/%s/%s,%s'%(weatherkey, lat, lon))
+	forecastresponse = forecastrequest.json()
+	currenttemp = forecastresponse['currently']['temperature']
+	c = (currenttemp - 32) * (5/9)
+	c = round(c, 1)
+	return c
 
-#print(res) used in testing
-#print(data) used in testing
+def findcoords(city):
+	jsonrequest = requests.get('https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q=%s&format=json&limit=1'%city)
+	jsonresponse = jsonrequest.json()
 
-temp = data['main']['temp'] #calls specific informatiotn
-weather = data['weather'][0]['main']
-#prints result
-print('\nTempeture : {} degrees celsius \n'.format(temp))
-print('Weather is {} at the moment'.format(weather))
+	latitude = jsonresponse[0]['lat']
+	longitude = jsonresponse[0]['lon']
+	#city = jsonresponse[0]['city']
+	coords = (latitude, longitude)
+	return coords
